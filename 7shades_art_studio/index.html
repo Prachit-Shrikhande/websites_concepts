@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>7 Shades Art Studio - We Create Artists</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&amp;family=Quicksand:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style type="text/tailwindcss">
+        html {
+            scroll-behavior: smooth;
+        }
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-yellow: #f8ff00;
+            --neon-green: #39ff14;
+            --electric-orange: #ff5e00;
+            --vibrant-purple: #7d00ff;
+            --block-border: 4px;
+        }
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fdfdfd;
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        h1, h2, h3, .nav-logo {
+            font-family: 'Fredoka', sans-serif;
+        }
+        .block-shape {
+            border: var(--block-border) solid #1a1a1a;
+            box-shadow: 8px 8px 0px #1a1a1a;
+            transition: transform 0.2s ease-out;
+        }
+        .block-shape:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 10px 10px 0px #1a1a1a;
+        }
+        .asymmetric-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+        .rotated-left { transform: rotate(-1.5deg); }
+        .rotated-right { transform: rotate(1.5deg); }
+        .clip-blob { clip-path: circle(50% at 50% 50%); }
+
+        /* Floating Action Buttons */
+        .fab-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 100;
+        }
+        .fab-btn {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #1a1a1a;
+            box-shadow: 5px 5px 0px #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+            text-decoration: none;
+        }
+        .fab-btn:hover {
+            transform: translate(-2px, -2px) rotate(0deg) !important;
+            box-shadow: 7px 7px 0px #1a1a1a;
+        }
+        .fab-whatsapp {
+            background-color: #25D366;
+            transform: rotate(3deg);
+        }
+        .fab-phone {
+            background-color: var(--neon-blue);
+            transform: rotate(-3deg);
+        }
+        .fab-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: #1a1a1a;
+        }
+        @keyframes fab-pulse {
+            0%, 100% { box-shadow: 5px 5px 0px #1a1a1a; }
+            50% { box-shadow: 5px 5px 0px #1a1a1a, 0 0 0 6px rgba(0,0,0,0.08); }
+        }
+        .fab-btn {
+            animation: fab-pulse 3s ease-in-out infinite;
+        }
+        
+        /* Preloader Styles */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .preloader-block {
+            width: 20%;
+            height: 100%;
+            transform-origin: bottom;
+        }
+        .loading-text {
+            opacity: 0;
+        }
+        .spiral-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .spiral-ring {
+            position: absolute;
+            border-radius: 50%;
+            border-top: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-left: 15px solid;
+            mix-blend-mode: screen;
+        }
+        /* Rainbow Colors */
+        .ring-1 { width: 300px; height: 300px; color: #ff0000; } /* Red */
+        .ring-2 { width: 350px; height: 350px; color: #ff7f00; } /* Orange */
+        .ring-3 { width: 400px; height: 400px; color: #ffff00; } /* Yellow */
+        .ring-4 { width: 450px; height: 450px; color: #00ff00; } /* Green */
+        .ring-5 { width: 500px; height: 500px; color: #0000ff; } /* Blue */
+        .ring-6 { width: 550px; height: 550px; color: #4b0082; } /* Indigo */
+        .ring-7 { width: 600px; height: 600px; color: #9400d3; } /* Violet */
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff5e00",
+                        "studio-blue": "#00f3ff",
+                        "studio-pink": "#ff00ff",
+                        "studio-yellow": "#f8ff00",
+                        "studio-purple": "#7d00ff",
+                    },
+                    borderRadius: {
+                        'blob': '30% 70% 70% 30% / 30% 30% 70% 70%'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="text-gray-900 overflow-x-hidden">
+
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="loading-text" style="color: white; font-size: 2rem; font-weight: bold;">7 SHADES</div>
+        <div class="spiral-container">
+            <!-- 7 Rings for Rainbow -->
+            <div class="spiral-ring ring-7"></div>
+            <div class="spiral-ring ring-6"></div>
+            <div class="spiral-ring ring-5"></div>
+            <div class="spiral-ring ring-4"></div>
+            <div class="spiral-ring ring-3"></div>
+            <div class="spiral-ring ring-2"></div>
+            <div class="spiral-ring ring-1"></div>
+        </div>
+    </div>
+    <nav class="sticky top-4 z-50 mx-4 lg:mx-10 mb-8">
+        <div class="max-w-7xl mx-auto flex items-center justify-between bg-white block-shape p-4 rounded-2xl">
+            <a class="flex items-center gap-3" href="#">
+                <div
+                    class="w-12 h-12 bg-studio-yellow block-shape rounded-lg flex items-center justify-center text-black font-bold text-2xl rotate-3">
+                    7S</div>
+                <span class="text-2xl font-bold tracking-tight">7 Shades <span class="text-primary">Art
+                        Studio</span></span>
+            </a>
+            <div class="hidden md:flex items-center gap-8 font-bold">
+                <a class="hover:text-primary underline decoration-4 decoration-studio-blue" href="#about">About Us</a>
+                <a class="hover:text-primary underline decoration-4 decoration-studio-pink"
+                    href="#services">Services</a>
+                <a class="hover:text-primary underline decoration-4 decoration-studio-yellow"
+                    href="#contact">Contact</a>
+            </div>
+            <a class="bg-studio-green bg-[var(--neon-green)] block-shape px-6 py-2 rounded-full font-bold text-black text-sm uppercase tracking-wider"
+                href="#contact">Book a Free Trial</a>
+        </div>
+    </nav>
+    <section class="relative px-4 pb-24 overflow-visible" id="home" style="margin-top: 100px;">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-6 relative z-10">
+                    <div
+                        class="hero-badge inline-block mb-6 px-6 py-2 bg-studio-purple text-white font-bold text-sm block-shape rounded-full -rotate-2">
+                        🎨 Punawale's Premier Art Studio
+                    </div>
+                    <h1 class="text-6xl lg:text-8xl font-black mb-8 leading-[0.9] uppercase italic">
+                        We Create <br />
+                        <span
+                            class="text-white bg-black px-4 inline-block my-2 rotated-right inline-block">Artists</span>
+                        <span class="text-primary italic inline-block">of Tomorrow</span>
+                    </h1>
+                    <p
+                        class="text-xl font-medium mb-10 max-w-xl leading-relaxed bg-white/80 p-6 block-shape rounded-3xl hero-desc">
+                        Unleash your child's creativity with our multi-disciplinary learning programs. From classical
+                        music to modern robotics, we nurture every shade of talent.
+                    </p>
+                    <div class="flex flex-wrap gap-6 hero-btns">
+                        <a class="bg-studio-blue block-shape px-8 py-4 text-xl font-bold rounded-2xl -rotate-2 hover:rotate-0 transition-all"
+                            href="#services">Explore Programs</a>
+                        <a class="bg-white block-shape px-8 py-4 text-xl font-bold rounded-2xl rotate-2 hover:rotate-0 transition-all"
+                            href="#contact">Visit Studio</a>
+                    </div>
+                </div>
+                <div class="lg:col-span-6 relative h-[600px] mt-12 lg:mt-0 hero-image-group">
+                    <div
+                        class="absolute top-0 right-10 w-64 h-64 bg-studio-pink block-shape rounded-blob rotate-12 -z-10">
+                    </div>
+                    <div class="absolute bottom-0 left-0 w-80 h-40 bg-studio-yellow block-shape -rotate-6 -z-10"></div>
+                    <div class="absolute top-10 left-10 w-64 h-64 block-shape bg-white p-3 rotate-[-8deg]">
+                        <img alt="Child painting" class="w-full h-full object-cover grayscale contrast-125 rounded-lg"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBus_esZDrpR_593SJXJItl7N5KRsj4qujhQoWa1Zrjo3HFcFkIkBMAcTG578pHw0tmefvo_rXHRTw9XMg1IhixevokBOw2ns9dpb0n5RCvL2Ph6s_hcHo8xHBxDXv-0804Mrl0GPv9pT61xpuCiYQnZG2Rhz8PvgRLngizc-Ldj3icWaWj8QufhAKxSIOo0X3cDv3mV2sg732X3xTtHv_M9yoIWM7RO41Mys208RcIeFrd4XqjhVE5RlN3jNXzH3UCqxF3VHSeZlbp" />
+                    </div>
+                    <div class="absolute top-40 right-0 w-72 h-48 block-shape bg-white p-3 rotate-[12deg]">
+                        <img alt="Music class" class="w-full h-full object-cover rounded-lg"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuArsTYKjJeunyw7yDDxuhffxDgZnaWbwUCN9_2n-fw-Yc_YEoYhy60xpE6TNi1VKd9JzMFQLw4kSN_sCJ5sjZiWtxgF9IkJXpYKhybywiQsKkLGzuBtvjFqrpYss3CIJ9ViiLLsEpYTY7RZ6jhu_AQKw8AVaayOvS-nP65WRrvipSkvC0Eji_s8JSX5ND9iMFv1r-wt8xvKigUscCrsKB03D79byVLdAdx_VrV8aSWKlSvAtlco8jR5zLG0-DSUyiJxXiGBEq2VwO2H" />
+                    </div>
+                    <div class="absolute bottom-10 left-20 w-56 h-72 block-shape bg-white p-3 rotate-[-3deg]">
+                        <img alt="Student smiling" class="w-full h-full object-cover rounded-lg"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCS5mpCIiRoh4XUlmx9uaDD0lDvitFxhdMPTuipIOEXLOQB3DHZ40pQaMPQxdSpnm0MzmMxfGSX2mpjmNSlXZ64O2CtqMB4I3BQLvT4ehzXP7NzTFf6zpBJFXIxiI_i4I1508t_lH83_8e94Y1kOnozkmQbYg0zZxqWij05oF2Rb1Bm70iIu6cdxGsyow5j8SLUvptkY-t2dkOg9zVFq8xyFFHrFi5O2I6gNnRguAdR_nKj4AwVvDf0aZ04YeCE7HgCtb8VL8TPDGc-" />
+                    </div>
+                    <div class="absolute bottom-5 right-10 w-48 h-48 block-shape bg-white p-3 rotate-[5deg]">
+                        <img alt="Puzzle solver" class="w-full h-full object-cover grayscale rounded-lg"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRsxKkgo4EF5P2Fp1DBAc9KrLPZyRDS3bhWfwan0gEpJbg9FZLMzbsqq_9Q5Fe9QsHjDFDgGJekapAhjb3P0wSPe1W_N3Fsl1YQJqm_RcopjT5HXjfHh2lkUBtB9gHvzrHzcxe2SqG9_oDEwuzAv0c05QQw2Z750rDUvdFdWcCmfax-fkgK-LyryDn7fHOWLlG7KP9zmAVR9IqZNaoj4js48o_E1pvnRnXhUscPUScY3xzWv9OW-pHFAq9yaX8Q6n2OObBbtwzAKRI" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="py-24 bg-black text-white relative" id="services">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex flex-col lg:flex-row justify-between items-end mb-20 gap-8">
+                <div class="max-w-2xl">
+                    <span class="text-studio-blue font-black uppercase tracking-[0.3em] text-lg">Our Programs</span>
+                    <h2 class="text-5xl md:text-7xl font-bold mt-4 leading-tight">Explore 12 Shades of Learning</h2>
+                </div>
+                <p class="text-xl text-gray-400 max-w-sm border-l-4 border-studio-yellow pl-6 italic">From canvas to
+                    chords, we offer a comprehensive range of creative and academic courses.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="block-shape bg-white p-8 text-black rounded-3xl rotated-left border-studio-blue border-8">
+                    <span class="material-icons text-5xl text-studio-blue mb-4">brush</span>
+                    <h3 class="text-2xl font-bold mb-3">Drawing</h3>
+                    <p class="text-gray-600 font-medium">Master the fundamentals of lines, shapes, and shading to bring
+                        imagination to paper.</p>
+                </div>
+                <div
+                    class="block-shape bg-white p-8 text-black rounded-3xl rotated-right mt-8 lg:mt-12 border-studio-pink border-8">
+                    <span class="material-icons text-5xl text-studio-pink mb-4">face</span>
+                    <h3 class="text-2xl font-bold mb-3">Portrait Sketching</h3>
+                    <p class="text-gray-600 font-medium">Advanced techniques to capture realistic human expressions and
+                        features.</p>
+                </div>
+                <div class="block-shape bg-white p-8 text-black rounded-3xl rotated-left border-studio-yellow border-8">
+                    <span class="material-icons text-5xl text-studio-yellow mb-4">music_note</span>
+                    <h3 class="text-2xl font-bold mb-3">Guitar / Keyboard</h3>
+                    <p class="text-gray-600 font-medium">Learn chords, scales, and songs on your favorite instrument
+                        with expert guidance.</p>
+                </div>
+                <div
+                    class="block-shape bg-white p-8 text-black rounded-3xl rotated-right mt-8 border-studio-purple border-8">
+                    <span class="material-icons text-5xl text-studio-purple mb-4">create</span>
+                    <h3 class="text-2xl font-bold mb-3">Calligraphy</h3>
+                    <p class="text-gray-600 font-medium">The art of beautiful writing. Improve handwriting and learn
+                        decorative styles.</p>
+                </div>
+                <div
+                    class="block-shape bg-white p-8 text-black rounded-3xl rotated-right border-studio-green border-[var(--neon-green)] border-8">
+                    <span class="material-icons text-5xl text-[var(--neon-green)] mb-4">calculate</span>
+                    <h3 class="text-2xl font-bold mb-3">Abacus &amp; Vedic Maths</h3>
+                    <p class="text-gray-600 font-medium">Boost calculation speed, concentration, and mental agility
+                        significantly.</p>
+                </div>
+                <div class="block-shape bg-white p-8 text-black rounded-3xl rotated-left mt-4 border-primary border-8">
+                    <span class="material-icons text-5xl text-primary mb-4">palette</span>
+                    <h3 class="text-2xl font-bold mb-3">Canvas Painting</h3>
+                    <p class="text-gray-600 font-medium">Express through colors using acrylics and oils on professional
+                        canvas.</p>
+                </div>
+                <div class="block-shape bg-white p-8 text-black rounded-3xl rotated-right border-studio-blue border-8">
+                    <span class="material-symbols-outlined text-5xl text-studio-blue mb-4">grid_on</span>
+                    <h3 class="text-2xl font-bold mb-3">Rubik's Cube</h3>
+                    <p class="text-gray-600 font-medium">Learn algorithms to solve various cubes, enhancing logic and
+                        patience.</p>
+                </div>
+                <div
+                    class="block-shape bg-white p-8 text-black rounded-3xl rotated-left mt-10 border-studio-pink border-8">
+                    <span class="material-icons text-5xl text-studio-pink mb-4">record_voice_over</span>
+                    <h3 class="text-2xl font-bold mb-3">Phonics</h3>
+                    <p class="text-gray-600 font-medium">A strong foundation for reading and pronunciation for early
+                        learners.</p>
+                </div>
+                <div
+                    class="block-shape bg-white p-8 text-black rounded-3xl rotated-right border-studio-yellow border-8">
+                    <span class="material-icons text-5xl text-studio-yellow mb-4">wallpaper</span>
+                    <h3 class="text-2xl font-bold mb-3">Mural Art</h3>
+                    <p class="text-gray-600 font-medium">Large-scale artwork techniques for walls and expansive
+                        surfaces.</p>
+                </div>
+                <div
+                    class="block-shape bg-white p-8 text-black rounded-3xl rotated-left mt-6 border-studio-purple border-8">
+                    <span class="material-icons text-5xl text-studio-purple mb-4">mic</span>
+                    <h3 class="text-2xl font-bold mb-3">Classical Singing</h3>
+                    <p class="text-gray-600 font-medium">Traditional vocal training focusing on sur, taal, and breathing
+                        control.</p>
+                </div>
+                <div
+                    class="block-shape bg-white p-8 text-black rounded-3xl rotated-right border-studio-green border-[var(--neon-green)] border-8">
+                    <span class="material-icons text-5xl text-[var(--neon-green)] mb-4">menu_book</span>
+                    <h3 class="text-2xl font-bold mb-3">English Grammar</h3>
+                    <p class="text-gray-600 font-medium">Comprehensive language rules to improve speaking and writing
+                        accuracy.</p>
+                </div>
+                <div class="block-shape bg-white p-8 text-black rounded-3xl rotated-left mt-12 border-primary border-8">
+                    <span class="material-icons text-5xl text-primary mb-4">diamond</span>
+                    <h3 class="text-2xl font-bold mb-3">Jewellery Making</h3>
+                    <p class="text-gray-600 font-medium">Craft beautiful accessories using beads, wires, and creative
+                        designs.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="py-32 bg-white overflow-hidden" id="about">
+        <div class="max-w-7xl mx-auto px-4 relative">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <div class="w-full lg:w-1/2 relative h-[500px] gsap-about-img">
+                    <div class="absolute inset-0 bg-studio-yellow block-shape -rotate-3 rounded-3xl"></div>
+                    <div class="absolute inset-4 bg-black block-shape rotate-2 rounded-3xl"></div>
+                    <img alt="Studio Interior"
+                        class="absolute inset-8 w-full h-full object-cover rounded-2xl block-shape -rotate-1 grayscale"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCvyxnF7tIvobZ60P22O-9KuKA7X8Bl1M5uq04JwMudGZL4TFbwphgVOMgO4i-MvPiYpz4k547zxpxtAF_k_aq-98L0v6IXCni7tXNCi-g5fUkxultDEEpMW9qjHhCWEDFr7PZrzDNWNM4Jr9gJ9SVhuIwsFad16HMdyJ0Yhz05h4J3G6viJHazMCaVl_frEQXQi20sDNBzo_ZWxFbcKC9-3hYKXMUSA68OSc0OjGJG_fwuWK9_fnmZbhHk--ZgWsUNrUIMm_YnuXz" />
+                    <div
+                        class="absolute -bottom-10 -right-10 bg-studio-pink block-shape p-8 rounded-full font-black text-black text-xl rotate-12">
+                        SINCE 2018</div>
+                </div>
+                <div class="w-full lg:w-1/2 relative text-content gsap-about-text">
+                    <div class="bg-studio-blue/20 absolute -inset-6 rounded-blob -z-10 rotate-45"></div>
+                    <span
+                        class="bg-black text-studio-yellow px-4 py-1 font-bold text-sm block-shape mb-6 inline-block">ABOUT
+                        US</span>
+                    <h2 class="text-5xl lg:text-6xl font-black mb-8 italic uppercase">Nurturing Creativity <span
+                            class="text-studio-purple">in Pune</span></h2>
+                    <div class="space-y-6 text-xl font-medium leading-relaxed">
+                        <p>At <strong>7 Shades Art Studio</strong>, we believe every child is an artist waiting to be
+                            discovered. Located in the heart of Punawale, our studio is a vibrant sanctuary where
+                            imagination meets guidance.</p>
+                        <p>We don't just teach techniques; we foster confidence. Whether it's the discipline of
+                            classical music or the freedom of canvas painting, our experienced mentors ensure
+                            personalized attention.</p>
+                    </div>
+                    <div class="mt-10 grid grid-cols-1 gap-4">
+                        <div class="bg-white block-shape p-4 flex items-center gap-4 rotate-1">
+                            <div
+                                class="w-10 h-10 bg-studio-green bg-[var(--neon-green)] rounded-full flex items-center justify-center border-2 border-black">
+                                <span class="material-icons font-bold">check</span>
+                            </div>
+                            <span class="font-bold">Certified &amp; Experienced Instructors</span>
+                        </div>
+                        <div class="bg-white block-shape p-4 flex items-center gap-4 -rotate-1">
+                            <div
+                                class="w-10 h-10 bg-studio-pink rounded-full flex items-center justify-center border-2 border-black">
+                                <span class="material-icons font-bold">check</span>
+                            </div>
+                            <span class="font-bold">Small Batch Sizes for Individual Focus</span>
+                        </div>
+                        <div class="bg-white block-shape p-4 flex items-center gap-4 rotate-2">
+                            <div
+                                class="w-10 h-10 bg-studio-yellow rounded-full flex items-center justify-center border-2 border-black">
+                                <span class="material-icons font-bold">check</span>
+                            </div>
+                            <span class="font-bold">Holistic Development (Left &amp; Right Brain)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="py-16 bg-studio-yellow block-shape border-y-8 border-black mx-4 my-12">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+                <div>
+                    <div class="stat-number text-6xl font-black italic mb-2" data-target="500">0</div>
+                    <div class="font-bold uppercase tracking-widest bg-black text-white py-1">Happy Students</div>
+                </div>
+                <div>
+                    <div class="stat-number text-6xl font-black italic mb-2" data-target="12">0</div>
+                    <div class="font-bold uppercase tracking-widest bg-black text-white py-1">Courses Offered</div>
+                </div>
+                <div>
+                    <div class="stat-number text-6xl font-black italic mb-2" data-target="10">0</div>
+                    <div class="font-bold uppercase tracking-widest bg-black text-white py-1">Expert Mentors</div>
+                </div>
+                <div>
+                    <div class="stat-number text-6xl font-black italic mb-2" data-target="5">0</div>
+                    <div class="font-bold uppercase tracking-widest bg-black text-white py-1">Years of Excellence</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="py-24" id="contact">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-6xl font-black italic mb-4 uppercase">Visit Our <span
+                        class="text-primary underline decoration-studio-pink decoration-8">Studio</span></h2>
+            </div>
+            <div class="grid lg:grid-cols-12 gap-12">
+                <div class="lg:col-span-5 space-y-8 gsap-contact-info">
+                    <div class="bg-white block-shape p-10 rounded-3xl -rotate-2 border-8 border-studio-purple">
+                        <h3 class="text-3xl font-bold mb-8 uppercase tracking-tight">Contact Information</h3>
+                        <div class="space-y-8">
+                            <div class="flex items-start gap-6">
+                                <div
+                                    class="w-14 h-14 bg-studio-blue block-shape flex items-center justify-center flex-shrink-0 rotate-6">
+                                    <span class="material-icons text-3xl">phone</span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-black text-gray-400 uppercase tracking-widest">Phone</p>
+                                    <p class="text-2xl font-bold">+91 83904 93388</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-6">
+                                <div
+                                    class="w-14 h-14 bg-studio-pink block-shape flex items-center justify-center flex-shrink-0 -rotate-6">
+                                    <span class="material-icons text-3xl text-white">location_on</span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-black text-gray-400 uppercase tracking-widest">Address</p>
+                                    <p class="text-lg font-bold leading-tight">Shop no 2, Malpani squea, near 18
+                                        Latitude mall, Kate Wasti, Punawale, Pune, Pimpri-Chinchwad, Maharashtra 411033
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-6">
+                                <div
+                                    class="w-14 h-14 bg-studio-yellow block-shape flex items-center justify-center flex-shrink-0 rotate-12">
+                                    <span class="material-icons text-3xl">schedule</span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-black text-gray-400 uppercase tracking-widest">Timings</p>
+                                    <p class="text-lg font-bold">Mon - Sat: 10 AM - 8 PM<br />Sunday: Closed</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-7 gsap-contact-map">
+                    <div class="relative h-full min-h-[500px]">
+                        <div class="absolute inset-0 bg-black block-shape rotate-1 rounded-3xl -z-10"></div>
+                        <div class="h-full bg-gray-200 block-shape rounded-3xl overflow-hidden relative">
+                            <iframe
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3780.896646287185!2d73.7316337!3d18.6237179!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2b8ec6cd37dc1%3A0xdaf56bec60a0dcbb!2s7%20SHADES%20ART%20STUDIO!5e0!3m2!1sen!2sin!4v1770790995032!5m2!1sen!2sin"
+                                class="w-full h-full border-0" allowfullscreen="" loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"
+                                title="7 Shades Art Studio Location"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer class="bg-black text-white pt-24 pb-12 border-t-[16px] border-studio-blue">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
+                <div>
+                    <div class="flex items-center gap-4 mb-8">
+                        <div
+                            class="w-12 h-12 bg-primary block-shape rounded-xl flex items-center justify-center text-white font-bold text-xl rotate-3">
+                            7S</div>
+                        <span class="text-3xl font-bold italic">7 Shades</span>
+                    </div>
+                    <p class="text-gray-400 text-lg font-medium leading-relaxed">
+                        We are dedicated to fostering creativity and skill development in children through art, music,
+                        and academic excellence.
+                    </p>
+                </div>
+                <div class="space-y-6">
+                    <h4 class="text-2xl font-bold text-studio-pink italic">Quick Links</h4>
+                    <ul class="space-y-4 font-bold text-lg">
+                        <li><a class="hover:text-studio-blue" href="#home">Home</a></li>
+                        <li><a class="hover:text-studio-blue" href="#about">About Us</a></li>
+                        <li><a class="hover:text-studio-blue" href="#services">Services</a></li>
+                        <li><a class="hover:text-studio-blue" href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="space-y-6">
+                    <h4 class="text-2xl font-bold text-studio-yellow italic">Popular Courses</h4>
+                    <ul class="space-y-4 font-bold text-lg">
+                        <li>Drawing &amp; Sketching</li>
+                        <li>Guitar Classes</li>
+                        <li>Abacus Maths</li>
+                        <li>Canvas Painting</li>
+                    </ul>
+                </div>
+                <div class="space-y-8">
+                    <h4 class="text-2xl font-bold text-studio-purple italic">Join Us</h4>
+                    <p class="text-gray-400 text-lg font-medium">Ready to start the journey? Call us today!</p>
+                    <a class="inline-block bg-studio-green bg-[var(--neon-green)] block-shape text-black font-black py-4 px-8 rounded-2xl text-xl italic hover:-rotate-3 transition-transform"
+                        href="tel:+918390493388">
+                        +91 83904 93388
+                    </a>
+                </div>
+            </div>
+            <div
+                class="pt-12 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-6 text-gray-500 font-bold uppercase tracking-widest text-sm">
+                <p>© 2023 7 Shades Art Studio. All rights reserved.</p>
+                <div class="flex gap-8">
+                    <span class="text-studio-blue">Facebook</span>
+                    <span class="text-studio-pink">Instagram</span>
+                    <span class="text-studio-yellow">YouTube</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Action Buttons -->
+    <div class="fab-container">
+        <a href="https://wa.me/918390493388" target="_blank" rel="noopener noreferrer" class="fab-btn fab-whatsapp"
+            aria-label="Chat on WhatsApp" title="Chat on WhatsApp">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+            </svg>
+        </a>
+        <a href="tel:+918390493388" class="fab-btn fab-phone" aria-label="Call Us" title="Call Us">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+            </svg>
+        </a>
+    </div>
+
+    <script>
+        // Use DOMContentLoaded for faster animation start, window.load for layout fix
+        document.addEventListener("DOMContentLoaded", () => {
+
+            // Register ScrollTrigger
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Preloader Animation
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    ScrollTrigger.refresh();
+                }
+            });
+
+            // Initial text reveal
+            tl.to(".loading-text", {
+                opacity: 1,
+                scale: 1.2,
+                duration: 1,
+                ease: "back.out(1.7)"
+            })
+                // Spiraling motion (concurrent)
+                .to(".spiral-ring", {
+                    rotation: (i) => (i + 1) * 360 + 180, // Different speeds
+                    duration: 2.5,
+                    ease: "power2.inOut",
+                    stagger: {
+                        each: 0.1,
+                        from: "end"
+                    }
+                }, "<")
+                // Exit animation
+                .to(".loading-text", {
+                    scale: 0,
+                    opacity: 0,
+                    duration: 0.5,
+                    ease: "back.in(1.7)"
+                })
+                .to(".spiral-ring", {
+                    scale: 5,
+                    opacity: 0,
+                    rotation: (i) => "+=" + 180,
+                    duration: 0.8,
+                    stagger: 0.05,
+                    ease: "power2.in"
+                }, "<+=0.2")
+                .to("#preloader", {
+                    autoAlpha: 0,
+                    duration: 0.2
+                });
+
+            // Navbar Animation
+
+            // Navbar Animation
+            tl.from("nav", {
+                y: -100,
+                opacity: 0,
+                duration: 1,
+                ease: "power4.out"
+            }, "-=0.5");
+
+            // Hero Section Animation
+            tl.from(".hero-badge", {
+                y: -50,
+                autoAlpha: 0,
+                duration: 0.8,
+                ease: "back.out(1.7)"
+            }, "-=0.5")
+                .from("h1 span", {
+                    y: 100,
+                    autoAlpha: 0,
+                    stagger: 0.1,
+                    duration: 0.8,
+                    ease: "power4.out"
+                }, "-=0.6")
+                .from(".hero-desc", {
+                    y: 30,
+                    autoAlpha: 0,
+                    duration: 0.8,
+                    ease: "power2.out"
+                }, "-=0.6")
+                .from(".hero-btns a", {
+                    scale: 0.8,
+                    autoAlpha: 0,
+                    stagger: 0.2,
+                    duration: 0.6,
+                    ease: "back.out(1.7)"
+                }, "-=0.6")
+                .from(".hero-image-group div", {
+                    scale: 0.8,
+                    autoAlpha: 0,
+                    rotation: gsap.utils.random(-15, 15, true),
+                    stagger: 0.2,
+                    duration: 0.8,
+                    ease: "elastic.out(1, 0.5)"
+                }, "-=0.8");
+
+            // Services Section
+            gsap.utils.toArray("#services .block-shape").forEach((card, i) => {
+                gsap.from(card, {
+                    scrollTrigger: {
+                        trigger: card,
+                        start: "top 85%",
+                        toggleActions: "play none none reverse"
+                    },
+                    y: 100,
+                    opacity: 0,
+                    rotation: i % 2 === 0 ? -5 : 5,
+                    duration: 0.8,
+                    ease: "power3.out"
+                });
+            });
+
+            // About Section (Using robust classes)
+            const aboutImg = document.querySelector(".gsap-about-img");
+            if (aboutImg) {
+                gsap.from(aboutImg, {
+                    scrollTrigger: {
+                        trigger: "#about",
+                        start: "top 70%"
+                    },
+                    x: -100,
+                    opacity: 0,
+                    duration: 1,
+                    ease: "power3.out"
+                });
+            }
+
+            const aboutText = document.querySelector(".gsap-about-text");
+            if (aboutText) {
+                gsap.from(aboutText.children, {
+                    scrollTrigger: {
+                        trigger: "#about",
+                        start: "top 70%"
+                    },
+                    x: 50,
+                    opacity: 0,
+                    stagger: 0.2,
+                    duration: 0.8,
+                    ease: "power3.out"
+                });
+            }
+
+            // Stats Counter Animation
+            const stats = document.querySelectorAll(".stat-number");
+            stats.forEach(stat => {
+                const target = stat.getAttribute("data-target");
+                if (!target) return;
+
+                const finalValue = parseInt(target);
+
+                // Initialize text to 0
+                stat.innerText = "0+";
+
+                // Use a proxy object for smooth counting
+                let counter = { value: 0 };
+
+                gsap.to(counter, {
+                    value: finalValue,
+                    duration: 2,
+                    ease: "power2.out",
+                    scrollTrigger: {
+                        trigger: stat,
+                        start: "top 85%",
+                        once: true
+                    },
+                    onUpdate: function () {
+                        stat.innerText = Math.ceil(this.targets()[0].value) + "+";
+                    }
+                });
+            });
+
+            // Contact Section (Using robust classes)
+            const contactInfo = document.querySelector(".gsap-contact-info");
+            if (contactInfo) {
+                gsap.from(contactInfo.children, {
+                    scrollTrigger: {
+                        trigger: "#contact",
+                        start: "top 80%"
+                    },
+                    x: -50,
+                    opacity: 0,
+                    stagger: 0.2,
+                    duration: 1,
+                    ease: "power3.out"
+                });
+            }
+
+            const contactMap = document.querySelector(".gsap-contact-map");
+            if (contactMap) {
+                gsap.from(contactMap, {
+                    scrollTrigger: {
+                        trigger: "#contact",
+                        start: "top 80%"
+                    },
+                    scale: 0.9,
+                    opacity: 0,
+                    duration: 1,
+                    ease: "power3.out",
+                    delay: 0.2
+                });
+            }
+
+            // FAB Animation
+            gsap.from(".fab-container", {
+                scrollTrigger: {
+                    trigger: "body",
+                    start: "top -100px",
+                    toggleActions: "play none none reverse"
+                },
+                y: 100,
+                opacity: 0,
+                duration: 0.5,
+                ease: "back.out(1.7)"
+            });
+
+        }); // End DOMContentLoaded
+
+        // Refresh ScrollTrigger on window load (handle images)
+        window.addEventListener("load", () => ScrollTrigger.refresh());
+    </script>
+</body>
+
+</html>
